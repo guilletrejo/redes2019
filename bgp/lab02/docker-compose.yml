@@ -1,0 +1,260 @@
+version: '2.1'
+
+services:
+
+  r1:
+    build: ./../images/bgp/.
+    volumes:
+      - ./../volumes/bgp/r1/zebra.conf:/etc/quagga/zebra.conf:ro
+      - ./../volumes/bgp/r1/ospf6d.conf:/etc/quagga/ospf6d.conf:ro
+      - ./../volumes/bgp/r1/ospfd.conf:/etc/quagga/ospfd.conf:ro
+      - ./../volumes/bgp/r1/bgpd.conf:/etc/quagga/bgpd.conf:ro
+      - ./../volumes/bgp/supervisord.conf:/etc/supervisord.conf:ro
+    image: bgp:20180508
+    privileged: true
+    ports:
+      #admin
+      - 10101:2601
+      #ospf ipv6
+      - 10106:2606
+      #ospf ipv4
+      - 10104:2604
+      #bgp
+      - 10103:2605
+    networks:
+      r11_r1:
+        ipv4_address: 192.2.4.3
+        ipv6_address: aaaa:2:4::3
+      r1_r2:
+        ipv4_address: 192.2.5.3
+        ipv6_address: aaaa:2:5::3
+
+  r2:
+    build: ./../images/bgp/.
+    volumes:
+      - ./../volumes/bgp/r2/zebra.conf:/etc/quagga/zebra.conf:ro
+      - ./../volumes/bgp/r2/ospf6d.conf:/etc/quagga/ospf6d.conf:ro
+      - ./../volumes/bgp/r2/ospfd.conf:/etc/quagga/ospfd.conf:ro
+      - ./../volumes/bgp/r2/bgpd.conf:/etc/quagga/bgpd.conf:ro
+      - ./../volumes/bgp/supervisord.conf:/etc/supervisord.conf:ro
+    image: bgp:20180508
+    privileged: true
+    ports:
+      #admin
+      - 10201:2601
+      #ospf ipv6
+      - 10206:2606
+      #ospf ipv4
+      - 10204:2604
+      #bgp
+      - 10203:2605
+    networks:
+      r22_r2:
+        ipv4_address: 192.1.6.3
+        ipv6_address: aaaa:1:6::3
+      r1_r2:
+        ipv4_address: 192.2.5.2
+        ipv6_address: aaaa:2:5::2
+
+  nginx:
+    image: nginx:1.15.10-alpine
+    privileged: true
+    ports:
+      - 8080:80
+    networks:
+      r11_nginx:
+        ipv4_address: 192.2.2.10
+        ipv6_address: aaaa:2:2::10
+
+  apache:
+    image: httpd:2.4.37-alpine
+    privileged: true
+    ports:
+      - 8081:80
+    networks:
+      r22_apache:
+        ipv4_address: 192.1.8.10
+        ipv6_address: aaaa:1:8::10
+
+  r11:
+    build: ./../images/ospf/.
+    volumes:
+      - ./../volumes/ospf/r11/zebra.conf:/etc/quagga/zebra.conf:ro
+      - ./../volumes/ospf/r11/ospfd.conf:/etc/quagga/ospfd.conf:ro
+      - ./../volumes/ospf/r11/ospf6d.conf:/etc/quagga/ospf6d.conf:ro
+      - ./../volumes/ospf/supervisord.conf:/etc/supervisord.conf:ro
+    image: ospf:20180508
+    privileged: true
+    ports:
+      #admin
+      - 10111:2601
+      #ospf ipv4
+      - 10114:2604
+      #ospf ipv6
+      - 10116:2606
+    networks:
+      r11_r12:
+        ipv4_address: 192.2.3.2
+        ipv6_address: aaaa:2:3::2
+      r11_nginx:
+        ipv4_address: 192.2.2.2
+        ipv6_address: aaaa:2:2::2
+      r11_r1:
+        ipv4_address: 192.2.4.2
+        ipv6_address: aaaa:2:4::2
+          
+  r12:
+    build: ./../images/ospf/.
+    image: ospf:20180508
+    volumes:
+      - ./../volumes/ospf/r12/zebra.conf:/etc/quagga/zebra.conf:ro
+      - ./../volumes/ospf/r12/ospfd.conf:/etc/quagga/ospfd.conf:ro
+      - ./../volumes/ospf/r12/ospf6d.conf:/etc/quagga/ospf6d.conf:ro
+      - ./../volumes/ospf/supervisord.conf:/etc/supervisord.conf:ro
+    privileged: true
+    ports:
+      #admin
+      - 10121:2601
+      #ospf ipv4
+      - 10124:2604
+      #ospf ipv6
+      - 10126:2606
+    networks:
+      r11_r12:
+        ipv4_address: 192.2.3.3
+        ipv6_address: aaaa:2:3::3
+      r12_pc1:
+        ipv4_address: 192.2.1.2
+        ipv6_address: aaaa:2:1::2
+
+  r21:
+    build: ./../images/ospf/.
+    image: ospf:20180508
+    volumes:
+      - ./../volumes/ospf/r21/zebra.conf:/etc/quagga/zebra.conf:ro
+      - ./../volumes/ospf/r21/ospfd.conf:/etc/quagga/ospfd.conf:ro
+      - ./../volumes/ospf/r21/ospf6d.conf:/etc/quagga/ospf6d.conf:ro
+      - ./../volumes/ospf/supervisord.conf:/etc/supervisord.conf:ro
+    privileged: true
+    ports:
+      #admin
+      - 10211:2601
+      #ospf ipv4
+      - 10214:2604
+      #ospf ipv6
+      - 10216:2606
+    networks:
+      r21_r22:
+        ipv4_address: 192.1.7.3
+        ipv6_address: aaaa:1:7::3
+      r21_pc2:
+        ipv4_address: 192.1.9.2
+        ipv6_address: aaaa:1:9::2
+
+  r22:
+    build: ./../images/ospf/.
+    image: ospf:20180508
+    volumes:
+      - ./../volumes/ospf/r22/zebra.conf:/etc/quagga/zebra.conf:ro
+      - ./../volumes/ospf/r22/ospfd.conf:/etc/quagga/ospfd.conf:ro
+      - ./../volumes/ospf/r22/ospf6d.conf:/etc/quagga/ospf6d.conf:ro
+      - ./../volumes/ospf/supervisord.conf:/etc/supervisord.conf:ro
+    privileged: true
+    ports:
+      #admin
+      - 10221:2601
+      #ospf ipv4
+      - 10224:2604
+      #ospf ipv6
+      - 10226:2606
+    networks:
+      r21_r22:
+        ipv4_address: 192.1.7.2
+        ipv6_address: aaaa:1:7::2
+      r22_apache:
+        ipv4_address: 192.1.8.2
+        ipv6_address: aaaa:1:8::2
+      r22_r2:
+        ipv4_address: 192.1.6.2
+        ipv6_address: aaaa:1:6::2
+
+networks:
+
+  r1_r2:
+    driver: "bridge"
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.2.5.0/24
+        - subnet: aaaa:2:5::/64
+
+### AS 101 ###
+  r11_nginx:
+    driver: "bridge"
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.2.2.0/24
+        - subnet: aaaa:2:2::/64
+  r11_r12:
+    driver: "bridge"
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.2.3.0/24
+        - subnet: aaaa:2:3::/64
+  r11_r1:
+    driver: "bridge"
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.2.4.0/24
+        - subnet: aaaa:2:4::/64
+  r12_pc1:
+    driver: "bridge"
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.2.1.0/24
+        - subnet: aaaa:2:1::/64
+##############
+
+### AS 201 ###
+  r22_apache:
+    driver: "bridge"
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.1.8.0/24
+        - subnet: aaaa:1:8::/64
+  r21_r22:
+    driver: "bridge"
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.1.7.0/24
+        - subnet: aaaa:1:7::/64
+  r22_r2:
+    driver: "bridge"
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.1.6.0/24
+        - subnet: aaaa:1:6::/64
+  r21_pc2:
+    driver: "bridge"
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.1.9.0/24
+        - subnet: aaaa:1:9::/64
+##############
